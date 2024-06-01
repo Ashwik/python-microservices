@@ -12,5 +12,6 @@ urlpatterns = [
         'get': 'retrieve',
         'put': 'update',
         'delete': 'destroy',
-    }))
+    })),
+    path('user', views.UserAPIView.as_view())
 ]
