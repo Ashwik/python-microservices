@@ -1,5 +1,6 @@
-import pika
+import pika, json
 
+from main import Product, db
 
 def consume():
     try:
@@ -10,7 +11,28 @@ def consume():
 
         def callback(ch, method, properties, body):
             print('Received in main')
-            print(body)
+            data = body
+            print(data)
+
+            if properties.content_type == 'product_created':
+                product = Product(id=data['id'], title=data['title'], image=data['image'])
+                db.session.add(product)
+                db.session.commit()
+                print("Product created")
+
+            elif properties.content_type == 'product_updated':
+                product = Product.query.get(data['id'])
+                product.title = data['title']
+                product.image = data['image']
+                db.session.commit()
+                print("Product updated")
+
+            elif properties.content_type == 'product_deleted':
+                product_id = int(data)
+                product = Product.query.get(product_id)
+                db.session.delete(product)
+                db.session.commit()
+                print("Product deleted")
 
         channel.basic_consume(queue='main', on_message_callback=callback, auto_ack=True)
         print('start consuming')
